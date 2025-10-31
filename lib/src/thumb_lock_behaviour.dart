@@ -16,7 +16,10 @@ enum ThumbLockBehaviour {
 
   /// Both thumbs will be locked.
   /// This is the default behaviour.
-  both;
+  both,
+
+  /// All thumbs shall be locked
+  all;
 
   /// Returns true if the start thumb is locked.
   bool get isStartLocked => this == start || this == both;

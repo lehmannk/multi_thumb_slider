@@ -127,6 +127,7 @@ class MultiThumbSliderState extends State<MultiThumbSlider> {
   /// If it's not locked the new value is calculated.
   /// Based on the [ThumbOverdragBehaviour] the new value is then handled.
   void _handleDragUpdate(int index, DragUpdateDetails details) {
+    if (_ignoreDrag(index)) return;
     if (index == 0 && widget.lockBehaviour.isStartLocked) return;
     if (index == valueListeners.length - 1 &&
         widget.lockBehaviour.isEndLocked) {
@@ -300,6 +301,10 @@ class MultiThumbSliderState extends State<MultiThumbSlider> {
   /// thumb. This is to avoid that thumbs are in a deadlocked state for
   /// [ThumbOverdragBehaviour.stop].
   bool _ignoreDrag(int index) {
+    if (widget.lockBehaviour == ThumbLockBehaviour.all) {
+      return true;
+    }
+
     if (index == 0 && widget.lockBehaviour.isStartLocked) {
       return true;
     }
@@ -327,7 +332,8 @@ class MultiThumbSliderState extends State<MultiThumbSlider> {
       child: Stack(
         children: [
           Center(
-            child: widget.background ??
+            child:
+                widget.background ??
                 Container(
                   height: 4,
                   decoration: BoxDecoration(
@@ -338,26 +344,26 @@ class MultiThumbSliderState extends State<MultiThumbSlider> {
           ),
           ...valueListeners.mapIndexed((index, valueListener) {
             final handle = GestureDetector(
-                behavior: HitTestBehavior.translucent,
-                onHorizontalDragUpdate: (details) =>
-                    _handleDragUpdate(index, details),
-                child: thumbBuilder != null
-                    ? thumbBuilder.call(context, index)
-                    : const DefaultThumb());
+              behavior: HitTestBehavior.translucent,
+              onHorizontalDragUpdate: (details) =>
+                  _handleDragUpdate(index, details),
+              child: thumbBuilder != null
+                  ? thumbBuilder.call(context, index)
+                  : const DefaultThumb(),
+            );
             return Positioned.fill(
               child: AnimatedBuilder(
                 animation: valueListener,
                 builder: (context, child) {
                   return Align(
                     alignment: Alignment(valueListener.value * 2 - 1, .5),
-                    child: IgnorePointer(
-                        ignoring: _ignoreDrag(index), child: child),
+                    child: child,
                   );
                 },
                 child: handle,
               ),
             );
-          }).toList()
+          }).toList(),
         ],
       ),
     );
